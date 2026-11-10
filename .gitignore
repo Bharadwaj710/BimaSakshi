@@ -1,0 +1,89 @@
+# ==============================================================================
+# BimaSakshi - Root Git Ignore Configuration
+# ==============================================================================
+
+# --- Environment and Secret Keys ---
+.env
+*.env
+*.env.*
+!.env.example
+backend/.env
+backend/*.env
+frontend/.env
+*.pem
+*.key
+*.cert
+*.pfx
+
+# --- Python Virtual Environments ---
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+backend/.venv/
+
+# --- Python Bytecode and Caches ---
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node / Frontend Artifacts ---
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+dist-ssr/
+.vite/
+frontend/.vite/
+.vite-temp/
+frontend/.vite-temp/
+
+# --- Logs and Temporary Debug Files ---
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Generated Temporary Audio & Test Artifacts ---
+backend/*.wav
+backend/*.mp3
+backend/*.ogg
+backend/*.m4a
+backend/data/*.wav
+*.wav
+!frontend/public/*.wav
+
+# --- Scratch & Temporary Scripts ---
+backend/scratch_*.py
+scratch/
+
+# --- Local Databases & Vector Stores ---
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/
+.chroma/
+
+# --- IDE and OS-Specific Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

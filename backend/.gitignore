@@ -1,0 +1,33 @@
+# ==============================================================================
+# BimaSakshi - Backend Git Ignore Configuration
+# ==============================================================================
+
+# Environment and secrets
+.env
+*.env
+*.env.*
+!.env.example
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Generated temporary audio
+*.wav
+*.mp3
+*.ogg
+*.m4a
+data/*.wav
+
+# Scratch test scripts
+scratch_*.py
