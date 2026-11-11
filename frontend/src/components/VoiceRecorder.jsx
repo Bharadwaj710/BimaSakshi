@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Upload, Play, Pause, RotateCcw, Volume2, CheckCircle2, AlertCircle, FileAudio, Sparkles } from 'lucide-react';
+import { Mic, Square, Upload, Play, Pause, RotateCcw, Volume2, CheckCircle2, AlertCircle, Sparkles, HelpCircle } from 'lucide-react';
 
 const PRESET_SCENARIOS = [
   {
@@ -82,6 +82,14 @@ const PRESET_SCENARIOS = [
   },
 ];
 
+const PROMPT_SUGGESTIONS = [
+  { label: 'Patient Age', eg: 'e.g., 52 years' },
+  { label: 'Policy Tenure', eg: 'e.g., 14 months' },
+  { label: 'Sum Insured', eg: 'e.g., ₹10 Lakh' },
+  { label: 'Condition / Surgery', eg: 'e.g., Kidney stone surgery' },
+  { label: 'Room Rent / Deposit', eg: 'e.g., ₹30,000/day' },
+];
+
 export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
   const [activeTab, setActiveTab] = useState('record'); // 'record' | 'upload' | 'sample'
   const [isRecording, setIsRecording] = useState(false);
@@ -136,7 +144,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       let mimeType = 'audio/webm';
       if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         mimeType = 'audio/webm;codecs=opus';
@@ -158,7 +166,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
       recorder.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: mimeType });
         if (blob.size < 500) {
-          setErrorMsg('Recorded audio was too short or empty. Please try speaking again.');
+          setErrorMsg('Recorded audio was too short or empty. Please speak your claim details clearly.');
           setAudioBlob(null);
           setAudioUrl(null);
           return;
@@ -167,7 +175,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         const ext = mimeType.includes('webm') ? 'webm' : (mimeType.includes('ogg') ? 'ogg' : 'wav');
-        setAudioFileName(`recording_${Date.now()}.${ext}`);
+        setAudioFileName(`voice_claim_${Date.now()}.${ext}`);
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -175,7 +183,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
       setIsRecording(true);
     } catch (err) {
       console.error('Microphone access denied:', err);
-      setErrorMsg('Microphone permission denied or microphone not found. You can upload an audio file or try the sample scenarios.');
+      setErrorMsg('Microphone permission was denied or not found. You can upload an audio file or select a preset sample scenario.');
     }
   };
 
@@ -194,7 +202,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
     if (!file) return;
 
     if (!file.type.startsWith('audio/') && !file.name.match(/\.(wav|mp3|m4a|aac|ogg|webm)$/i)) {
-      setErrorMsg('Please select a valid audio file (.wav, .mp3, .m4a, .ogg).');
+      setErrorMsg('Please select a valid audio file (.wav, .mp3, .m4a, .ogg, .webm).');
       return;
     }
 
@@ -255,56 +263,56 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
   const currentScenario = PRESET_SCENARIOS.find((s) => s.id === selectedScenarioId) || PRESET_SCENARIOS[0];
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
-      {/* Panel Header & Mode Selector */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-xs">
+      {/* Workspace Header & Mode Tabs */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
-          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-            <Volume2 className="w-4 h-4 text-blue-600" />
+          <h2 className="font-heading text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Volume2 className="w-5 h-5 text-[#0F766E]" />
             Voice Claim Input
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Submit your planned hospitalization details in Hindi or Hinglish.
+            Describe your hospital admission or surgery in Hindi or Hinglish for an instant policy pre-audit.
           </p>
         </div>
 
-        {/* Input Mode Selector */}
-        <div className="flex items-center p-1 rounded-lg bg-slate-100 border border-slate-200 text-xs">
+        {/* Input Mode Tabs */}
+        <div className="flex items-center p-1 rounded-lg bg-slate-100 border border-slate-200/80 text-xs">
           <button
             type="button"
             onClick={() => handleTabChange('record')}
-            className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'record'
-                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Mic className="w-3.5 h-3.5 text-blue-600" />
+            <Mic className="w-3.5 h-3.5 text-[#0F766E]" />
             Record Voice
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('upload')}
-            className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'upload'
-                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Upload className="w-3.5 h-3.5 text-slate-500" />
-            Upload File
+            Upload Audio
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('sample')}
-            className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'sample'
-                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            Sample Scenarios
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            Preset Scenarios
           </button>
         </div>
       </div>
@@ -313,61 +321,80 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
       {activeTab === 'record' && (
         <div className="py-6 flex flex-col items-center justify-center text-center">
           {!audioBlob ? (
-            <div className="flex flex-col items-center max-w-sm">
+            <div className="flex flex-col items-center max-w-lg w-full">
+              {/* Prompt Suggestions */}
+              <div className="mb-5 w-full">
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                  Helpful Information You Can Mention:
+                </span>
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  {PROMPT_SUGGESTIONS.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-600"
+                    >
+                      <strong className="text-slate-800">{item.label}</strong>{' '}
+                      <span className="text-slate-400 text-[11px]">({item.eg})</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Main Record Action Button */}
               <div className="mb-4">
                 <button
                   type="button"
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={isAnalyzing}
-                  className={`h-16 w-16 rounded-full flex items-center justify-center transition-all ${
+                  className={`h-20 w-20 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     isRecording
-                      ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-md'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:scale-105'
+                      ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg ring-4 ring-rose-200 animate-pulse'
+                      : 'bg-[#0F766E] hover:bg-[#115E59] text-white shadow-sm hover:shadow-md hover:scale-105 ring-4 ring-teal-100'
                   }`}
-                  aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+                  aria-label={isRecording ? 'Stop recording voice' : 'Start recording voice'}
                 >
                   {isRecording ? (
-                    <Square className="w-6 h-6 fill-current" />
+                    <Square className="w-7 h-7 fill-current" />
                   ) : (
-                    <Mic className="w-6 h-6" />
+                    <Mic className="w-7 h-7" />
                   )}
                 </button>
               </div>
 
               {isRecording ? (
                 <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200">
                     <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
-                    <span className="font-mono text-base font-semibold text-rose-600">
-                      {formatSeconds(recordingDuration)}
+                    <span className="font-mono text-base font-bold text-rose-700">
+                      Recording: {formatSeconds(recordingDuration)}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    Recording audio... Click the red square when finished speaking.
+                    Speak naturally in Hindi or Hinglish. Click the red button when finished.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-slate-800">Click to start voice recording</p>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Speak naturally. Example: "मेरी उम्र 52 वर्ष है, मुझे किडनी स्टोन सर्जरी करानी है, ₹30,000 प्रतिदिन का कमरा लेना है..."
+                  <p className="text-sm font-semibold text-slate-900">Click microphone to begin speaking</p>
+                  <p className="text-xs text-slate-500 max-w-md leading-relaxed">
+                    "मेरी उम्र 52 वर्ष है, 10 लाख की पॉलिसी 14 महीने पुरानी है। किडनी स्टोन सर्जरी और ₹30,000 रूम रेंट पर क्या कटौती होगी?"
                   </p>
                 </div>
               )}
             </div>
           ) : (
-            <div className="w-full max-w-lg bg-slate-50 border border-slate-200 rounded-lg p-3.5 flex flex-col gap-2.5">
+            <div className="w-full max-w-lg bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-medium text-slate-800">Voice recording captured ({audioFileName})</span>
+                  <span className="text-xs font-semibold text-slate-900">Audio Captured ({audioFileName})</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleResetAudio}
-                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
+                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-slate-200/60 cursor-pointer"
                 >
-                  <RotateCcw className="w-3 h-3" /> Re-record
+                  <RotateCcw className="w-3.5 h-3.5" /> Re-record
                 </button>
               </div>
               <audio src={audioUrl} controls className="w-full h-9" />
@@ -382,38 +409,38 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="audio/*,.wav,.mp3,.m4a,.ogg"
+            accept="audio/*,.wav,.mp3,.m4a,.ogg,.webm"
             onChange={handleFileUpload}
             className="hidden"
           />
           {!audioBlob ? (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-lg p-8 text-center cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-2 max-w-lg mx-auto"
+              className="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-xl p-8 text-center cursor-pointer bg-slate-50/50 hover:bg-teal-50/20 transition-colors flex flex-col items-center justify-center gap-2 max-w-lg mx-auto"
             >
-              <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-1">
+              <div className="h-11 w-11 rounded-lg bg-teal-50 text-[#0F766E] flex items-center justify-center mb-1">
                 <Upload className="w-5 h-5" />
               </div>
-              <p className="text-sm font-medium text-slate-800">
-                Click to browse or drop an audio file
+              <p className="text-sm font-semibold text-slate-800">
+                Click to browse or drop audio recording
               </p>
               <p className="text-xs text-slate-500">
-                Supported formats: WAV (recommended), MP3, M4A, OGG up to 25MB
+                Supported formats: WAV (recommended 16kHz), MP3, M4A, OGG, WebM
               </p>
             </div>
           ) : (
-            <div className="max-w-lg mx-auto bg-slate-50 border border-slate-200 rounded-lg p-3.5 flex flex-col gap-2.5">
+            <div className="max-w-lg mx-auto bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 truncate">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="text-xs font-medium text-slate-800 truncate">{audioFileName}</span>
+                  <span className="text-xs font-semibold text-slate-900 truncate">{audioFileName}</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleResetAudio}
-                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors shrink-0 ml-2"
+                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors shrink-0 ml-2 px-2 py-1 rounded hover:bg-slate-200/60 cursor-pointer"
                 >
-                  <RotateCcw className="w-3 h-3" /> Change File
+                  <RotateCcw className="w-3.5 h-3.5" /> Change File
                 </button>
               </div>
               <audio src={audioUrl} controls className="w-full h-9" />
@@ -422,7 +449,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
         </div>
       )}
 
-      {/* Mode 3: Sample Scenarios */}
+      {/* Mode 3: Preset Sample Scenarios */}
       {activeTab === 'sample' && (
         <div className="py-4 space-y-3.5">
           {/* Scenario Selector Pills */}
@@ -436,7 +463,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
                   onClick={() => handleLoadScenario(sc.id)}
                   className={`p-2.5 rounded-lg text-left transition-all border text-xs cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-50/80 border-blue-300 text-blue-900 ring-1 ring-blue-300'
+                      ? 'bg-teal-50/80 border-teal-400 text-teal-900 ring-1 ring-teal-400'
                       : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
                   }`}
                 >
@@ -448,13 +475,13 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
           </div>
 
           {/* Active Scenario Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
             <div className="flex items-start justify-between gap-3 mb-2">
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0F766E]">
                   {currentScenario.category}
                 </span>
-                <h4 className="text-sm font-semibold text-slate-900 mt-0.5">
+                <h4 className="text-sm font-bold text-slate-900 mt-0.5 font-heading">
                   {currentScenario.name}
                 </h4>
               </div>
@@ -463,7 +490,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
               </span>
             </div>
 
-            <div className="p-3 bg-white border border-slate-200 rounded-md text-xs text-slate-700 leading-relaxed font-devanagari">
+            <div className="p-3 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 leading-relaxed font-devanagari">
               "{currentScenario.hindiPrompt}"
             </div>
 
@@ -472,15 +499,15 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
               {currentScenario.details.map((item, idx) => (
                 <div key={idx}>
                   <span className="text-slate-500 block">{item.label}</span>
-                  <span className="font-medium text-slate-800">{item.value}</span>
+                  <span className="font-semibold text-slate-800">{item.value}</span>
                 </div>
               ))}
             </div>
 
             {/* Audio Preview */}
             {audioUrl && (
-              <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center gap-3">
-                <span className="text-xs text-slate-500 shrink-0 font-medium">Audio Preview:</span>
+              <div className="mt-3 pt-3 border-t border-slate-200 flex items-center gap-3">
+                <span className="text-xs text-slate-600 shrink-0 font-medium">Sample Audio:</span>
                 <audio src={audioUrl} controls className="w-full h-8" />
               </div>
             )}
@@ -488,29 +515,29 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
         </div>
       )}
 
-      {/* Error Message */}
+      {/* Error Alert */}
       {errorMsg && (
-        <div className="mt-3 p-3 rounded-md bg-rose-50 border border-rose-200 flex items-start gap-2 text-xs text-rose-700">
+        <div className="mt-3 p-3 rounded-lg bg-rose-50 border border-rose-200 flex items-start gap-2 text-xs text-rose-700">
           <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
-          <span>{errorMsg}</span>
+          <span className="leading-relaxed font-medium">{errorMsg}</span>
         </div>
       )}
 
       {/* Action Footer */}
       <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="text-xs text-slate-500 flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-          <span>Audio transcribed with Gnani Prisma v2.5 STT</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+          <span>Prisma v2.5 STT &bull; Gemini 2.5 Flash &bull; Timbre v2.5 TTS</span>
         </div>
 
         <button
           type="button"
           onClick={handleAnalyzeClick}
           disabled={!audioBlob || isAnalyzing || isRecording}
-          className={`w-full sm:w-auto px-5 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm ${
+          className={`w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all shadow-xs ${
             !audioBlob || isAnalyzing || isRecording
               ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-              : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+              : 'bg-[#0F766E] hover:bg-[#115E59] text-white cursor-pointer hover:shadow-sm'
           }`}
         >
           {isAnalyzing ? (
@@ -520,7 +547,7 @@ export default function VoiceRecorder({ onAnalyze, isAnalyzing }) {
             </>
           ) : (
             <>
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <Sparkles className="w-4 h-4 text-teal-200" />
               <span>Analyze Policy Claim</span>
             </>
           )}

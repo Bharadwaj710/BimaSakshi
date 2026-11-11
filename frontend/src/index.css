@@ -3,21 +3,36 @@
 @layer base {
   :root {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-devanagari: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   body {
     background-color: #F8FAFC;
-    color: #1E293B;
+    color: #0F172A;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.015em;
+  }
+}
+
+.font-heading {
+  font-family: var(--font-heading);
 }
 
 .font-devanagari {
-  font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
-  line-height: 1.75;
+  font-family: var(--font-devanagari);
+  line-height: 1.8;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Subtle clean scrollbars */
@@ -42,7 +57,7 @@
     height: 4px;
   }
   50% {
-    height: 18px;
+    height: 20px;
   }
 }
 
