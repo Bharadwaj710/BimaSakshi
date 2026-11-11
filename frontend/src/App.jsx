@@ -175,6 +175,7 @@ export default function App() {
                 findings={analysisResponse.analysis?.findings}
                 warnings={analysisResponse.analysis?.warnings}
                 disclaimer={analysisResponse.analysis?.disclaimer}
+                checklist={analysisResponse.analysis?.checklist}
               />
             </section>
           </div>

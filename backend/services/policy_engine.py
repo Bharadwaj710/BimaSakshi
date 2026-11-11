@@ -816,6 +816,32 @@ def evaluate_policy_rules(
         if item not in clean_missing:
             clean_missing.append(item)
 
+    # -------------------------------------------------------------
+    # 6. Actionable Pre-Admission Checklist Construction
+    # -------------------------------------------------------------
+    checklist: List[str] = [
+        "Confirm your exact Sum Insured from your official Star Health Premier Policy Schedule (Options start from ₹10 Lakh).",
+    ]
+    if info.hospital_differential_billing is not True:
+        checklist.append(
+            'Ask the hospital admission desk: "Does your hospital charge higher doctor/OT/procedure rates for higher room categories?"'
+        )
+    if info.selected_room_rent_per_day:
+        checklist.append(
+            "Verify if choosing a room at or below 1% of Sum Insured eliminates proportionate deductions entirely."
+        )
+    if info.policy_tenure_months is not None and info.policy_tenure_months < 24:
+        checklist.append(
+            "If your policy tenure is under 24 months, confirm whether prior continuous insurance portability applies to waive the Specified Disease Waiting Period (Code Excl 02)."
+        )
+    if info.hospital_deposit is not None and info.hospital_deposit > 0:
+        checklist.append(
+            "Request written clarification from the hospital desk that the admission security deposit will be reconciled/refunded against the final approved cashless pre-authorisation minus non-payable items."
+        )
+    checklist.append(
+        "Request an itemized hospital estimate separating room rent, doctor fees, OT charges, medicines, and consumables."
+    )
+
     return AnalysisResult(
         findings=findings,
         calculations=calculations,
@@ -824,5 +850,6 @@ def evaluate_policy_rules(
         excluded_expenses=excluded_expenses,
         missing_information=clean_missing,
         relevant_clause_ids=relevant_clause_ids,
+        checklist=checklist,
         disclaimer="This is an informational policy pre-audit, not an insurer's claim decision.",
     )

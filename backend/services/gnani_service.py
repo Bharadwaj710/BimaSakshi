@@ -7,6 +7,7 @@ Wraps Gnani AI's Speech-to-Text REST endpoint for Hindi/Hinglish audio transcrip
 import json
 import logging
 import os
+import shutil
 import time
 from typing import Any, Dict, Optional, Tuple
 
@@ -47,12 +48,22 @@ def get_gnani_api_key() -> str:
     return key.strip()
 
 
+def check_ffmpeg_availability() -> Tuple[bool, Optional[str]]:
+    """
+    Checks whether the ffmpeg binary is accessible on the system PATH.
+    Returns (True, path) if available, (False, None) otherwise.
+    """
+    ffmpeg_path = shutil.which("ffmpeg")
+    return (ffmpeg_path is not None, ffmpeg_path)
+
+
 def normalize_to_pcm_wav(audio_bytes: bytes) -> bytes:
     """
     Normalizes any incoming audio stream (WebM, Opus, MP3, M4A, AAC, OGG, or non-standard WAV)
     into standard 16,000 Hz, 1-channel, 16-bit linear PCM WAV.
     If the audio is already a standard 16kHz PCM WAV, returns it directly.
     """
+    # 1. Fast path: check if audio is already standard 16kHz 1-channel PCM WAV
     if len(audio_bytes) >= 44 and audio_bytes[:4] == b"RIFF" and audio_bytes[8:12] == b"WAVE":
         try:
             import struct
@@ -64,6 +75,18 @@ def normalize_to_pcm_wav(audio_bytes: bytes) -> bytes:
                     return audio_bytes
         except Exception:
             pass
+
+    # 2. Verify FFmpeg availability before invoking conversion
+    ffmpeg_ok, ffmpeg_bin = check_ffmpeg_availability()
+    if not ffmpeg_ok:
+        err_msg = (
+            "FFmpeg executable was not found on system PATH. "
+            "FFmpeg is required to normalize browser audio (WebM/Opus) into 16,000 Hz 16-bit linear PCM WAV for Gnani Prisma STT. "
+            "Please install FFmpeg (e.g. 'winget install Gyan.FFmpeg' on Windows or 'sudo apt-get install ffmpeg' on Linux) "
+            "and ensure it is accessible in your system PATH."
+        )
+        logger.error(err_msg)
+        raise GnaniSTTError(err_msg)
 
     try:
         import subprocess
@@ -117,8 +140,10 @@ def normalize_to_pcm_wav(audio_bytes: bytes) -> bytes:
                     f"Raw PCM normalized to 16kHz PCM WAV: input {len(audio_bytes)} bytes -> output {len(pcm_proc.stdout)} bytes"
                 )
                 return pcm_proc.stdout
+    except GnaniSTTError:
+        raise
     except Exception as e:
-        logger.warning(f"Audio normalization via ffmpeg failed or ffmpeg not found: {e}. Passing raw bytes.")
+        logger.warning(f"Audio normalization via ffmpeg failed or ffmpeg error: {e}. Passing raw bytes.")
 
     return audio_bytes
 

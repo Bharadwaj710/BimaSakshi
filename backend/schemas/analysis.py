@@ -198,6 +198,10 @@ class AnalysisResult(BaseModel):
     excluded_expenses: List[str] = Field(default_factory=list, description="Expenses excluded from proportionate deduction (pharmacy, diagnostics, implants)")
     missing_information: List[str] = Field(default_factory=list, description="Parameters absent that prevent definitive evaluation")
     relevant_clause_ids: List[str] = Field(default_factory=list, description="Referenced policy clause IDs")
+    checklist: List[str] = Field(
+        default_factory=list,
+        description="Actionable pre-admission checklist items for hospital desk and TPA reconciliation",
+    )
     disclaimer: str = Field(
         default="This is an informational policy pre-audit, not an insurer's claim decision.",
         description="Regulatory disclaimer",

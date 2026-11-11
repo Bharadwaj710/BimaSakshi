@@ -1,6 +1,9 @@
 import requests
 import json
 import time
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 print("=" * 60)
 print("TESTING BIMASAKSHI FRONTEND-TO-BACKEND PIPELINE VIA VITE PROXY")
@@ -21,7 +24,8 @@ print(f"Policy metadata: {policy_res.json()}")
 # Step 3: Analyze audio through proxy
 print("\nUploading sample_scenario.wav to POST http://localhost:5173/api/analyze-audio...")
 t0 = time.time()
-with open("d:/bimasakshi/frontend/public/sample_scenario.wav", "rb") as f:
+sample_audio_path = PROJECT_ROOT / "frontend" / "public" / "sample_scenario.wav"
+with open(sample_audio_path, "rb") as f:
     files = {"audio": ("sample_scenario.wav", f, "audio/wav")}
     analyze_res = requests.post("http://localhost:5173/api/analyze-audio", files=files, timeout=60)
 elapsed = time.time() - t0

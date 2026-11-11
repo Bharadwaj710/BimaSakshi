@@ -20,7 +20,8 @@ if tts_res.status != "success":
     sys.exit(1)
 
 wav_bytes = base64.b64decode(tts_res.audio_base64)
-audio_path = Path("d:/bimasakshi/frontend/public/calculi_scenario.wav")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+audio_path = PROJECT_ROOT / "frontend" / "public" / "calculi_scenario.wav"
 audio_path.write_bytes(wav_bytes)
 print(f"WAV generated: {len(wav_bytes)} bytes saved to {audio_path}")
 

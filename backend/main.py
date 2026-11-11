@@ -55,6 +55,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize vector store at startup: {e}")
         raise e
+
+    # Check FFmpeg availability for audio conversion
+    from services.gnani_service import check_ffmpeg_availability
+    ffmpeg_ok, ffmpeg_bin = check_ffmpeg_availability()
+    if ffmpeg_ok:
+        logger.info(f"FFmpeg binary detected at: {ffmpeg_bin}")
+    else:
+        logger.warning(
+            "FFmpeg binary was NOT found on PATH. "
+            "Normalization from browser WebM/Opus to 16kHz PCM WAV requires FFmpeg."
+        )
     yield
     logger.info("Shutting down BimaSakshi Backend.")
 
@@ -85,6 +96,7 @@ class HealthResponse(BaseModel):
     app_name: str = "BimaSakshi Backend"
     status: str = "ok"
     vector_store_initialized: bool = True
+    ffmpeg_available: bool = True
 
 
 class PolicyStatusResponse(BaseModel):
@@ -143,10 +155,17 @@ async def health_check():
         logger.warning(f"Vector store health check failed: {e}")
         is_ready = False
 
+    try:
+        from services.gnani_service import check_ffmpeg_availability
+        ffmpeg_ok, _ = check_ffmpeg_availability()
+    except Exception:
+        ffmpeg_ok = False
+
     return HealthResponse(
         app_name="BimaSakshi Backend",
         status="ok",
         vector_store_initialized=is_ready,
+        ffmpeg_available=ffmpeg_ok,
     )
 
 

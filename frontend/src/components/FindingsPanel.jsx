@@ -1,14 +1,16 @@
 import React from 'react';
 import { AlertCircle, CheckSquare, ShieldAlert, Info, Check } from 'lucide-react';
 
-export default function FindingsPanel({ findings, warnings, disclaimer }) {
-  const checklistItems = [
+export default function FindingsPanel({ findings, warnings, disclaimer, checklist }) {
+  const defaultChecklist = [
     'Confirm your exact Sum Insured from your official Star Health Premier Policy Schedule (Options start from ₹10 Lakh).',
     'Ask the hospital admission desk: "Does your hospital charge higher doctor/OT/procedure rates for higher room categories?"',
     'Verify if choosing a room at or below 1% of Sum Insured eliminates proportionate deductions entirely.',
     'If your policy tenure is under 24 months, confirm whether prior continuous insurance portability applies to waive the Specified Disease Waiting Period (Code Excl 02).',
     'Request an itemized hospital estimate separating room rent, doctor fees, OT charges, medicines, and consumables.',
   ];
+
+  const checklistItems = checklist && checklist.length > 0 ? checklist : defaultChecklist;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">

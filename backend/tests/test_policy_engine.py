@@ -250,3 +250,40 @@ def test_invalid_negative_or_zero_values_handled_safely():
     result = evaluate_policy_rules(info)
     assert result is not None
     assert len(result.calculations) > 0
+
+
+def test_dynamic_pre_admission_checklist_generation():
+    """Verifies that AnalysisResult includes actionable pre-admission checklist items."""
+    info = ExtractedInsuranceInfo(
+        age=52,
+        sum_insured=1_000_000.0,
+        selected_room_rent_per_day=30000.0,
+        hospital_deposit=30000.0,
+        hospital_differential_billing=None,
+        policy_tenure_months=14,
+    )
+    result = evaluate_policy_rules(info)
+    assert hasattr(result, "checklist")
+    assert isinstance(result.checklist, list)
+    assert len(result.checklist) >= 4
+    assert any("Star Health Premier Policy Schedule" in item for item in result.checklist)
+    assert any("higher room categories" in item for item in result.checklist)
+    assert any("Code Excl 02" in item for item in result.checklist)
+    assert any("admission security deposit" in item for item in result.checklist)
+
+
+def test_ffmpeg_availability_and_pcm_wav_passthrough():
+    """Verifies FFmpeg availability helper and fast-path WAV passthrough."""
+    from services.gnani_service import check_ffmpeg_availability, normalize_to_pcm_wav
+    is_avail, path = check_ffmpeg_availability()
+    assert isinstance(is_avail, bool)
+
+    # 44-byte standard 16kHz mono 16-bit PCM WAV header
+    import struct
+    riff_header = b"RIFF" + struct.pack("<I", 36) + b"WAVE"
+    fmt_chunk = b"fmt " + struct.pack("<I", 16) + struct.pack("<H", 1) + struct.pack("<H", 1) + struct.pack("<I", 16000) + struct.pack("<I", 32000) + struct.pack("<H", 2) + struct.pack("<H", 16)
+    data_chunk = b"data" + struct.pack("<I", 0)
+    fake_wav = riff_header + fmt_chunk + data_chunk
+
+    normalized = normalize_to_pcm_wav(fake_wav)
+    assert normalized == fake_wav
