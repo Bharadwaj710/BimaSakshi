@@ -10,8 +10,12 @@ End-to-end AI pipeline for voice-driven health insurance policy analysis:
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import List, Optional
+
+from dotenv import load_dotenv
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -77,13 +81,34 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS restricted strictly to local Vite development origins
+_env_path = Path(__file__).resolve().parent / ".env"
+if _env_path.exists():
+    load_dotenv(dotenv_path=_env_path, override=False)
+
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
+def get_cors_origins() -> List[str]:
+    """Builds allowed CORS origins from local defaults plus comma-separated CORS_ORIGINS env var."""
+    raw = os.getenv("CORS_ORIGINS", "")
+    extra = [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+    merged: List[str] = []
+    for origin in DEFAULT_CORS_ORIGINS + extra:
+        if origin not in merged:
+            merged.append(origin)
+    return merged
+
+
+cors_origins = get_cors_origins()
+cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=cors_origins,
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],

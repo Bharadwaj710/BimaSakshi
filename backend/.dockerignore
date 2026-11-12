@@ -1,0 +1,20 @@
+# Exclude local secrets, virtual environments, caches, and test audio from Docker image
+.env
+*.env
+*.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*/__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.wav
+*.mp3
+*.ogg
+*.m4a
+tests/
+test_*.py
+scratch_*.py
+

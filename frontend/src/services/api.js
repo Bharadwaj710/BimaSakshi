@@ -1,16 +1,18 @@
 /**
  * BimaSakshi Frontend API Client
- * Connects to the FastAPI backend at /api and /health
+ * Connects to the FastAPI backend at /api and /health.
+ * Uses VITE_API_BASE_URL in production (Vercel -> Render) and falls back to ''
+ * for local Vite dev proxy.
  */
 
-const API_BASE = ''; // Proxied via Vite to http://127.0.0.1:8000
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 
 /**
  * Health check endpoint
  */
 export async function checkBackendHealth() {
   try {
-    const res = await fetch('/health', {
+    const res = await fetch(`${API_BASE}/health`, {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -26,7 +28,7 @@ export async function checkBackendHealth() {
  */
 export async function getPolicyStatus() {
   try {
-    const res = await fetch('/api/policy/status');
+    const res = await fetch(`${API_BASE}/api/policy/status`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -39,7 +41,7 @@ export async function getPolicyStatus() {
  * Perform semantic search on policy clauses
  */
 export async function searchPolicyClauses(query, topK = 3) {
-  const res = await fetch('/api/policy/search', {
+  const res = await fetch(`${API_BASE}/api/policy/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, top_k: topK }),
@@ -64,7 +66,7 @@ export async function analyzeAudioClaim(audioBlob, filename = 'recording.wav', p
     formData.append('policy_id', policyId);
   }
 
-  const res = await fetch('/api/analyze-audio', {
+  const res = await fetch(`${API_BASE}/api/analyze-audio`, {
     method: 'POST',
     body: formData,
   });
